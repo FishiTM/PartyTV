@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PartyTV</title>
+    <link rel="icon" href="/logo.ico" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Import Mediaelement CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/mediaelement@latest/build/mediaelementplayer.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg-deep: #0D1117;
+            --color-bg-med: #161B22;
+            --color-bg-light: #21262D;
+            --color-border: #30363D;
+            --color-text-bright: #E6EDF3;
+            --color-text-med: #8B949E;
+            --color-text-muted: #6E7681;
+            --color-accent: #58A6FF;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--color-bg-deep);
+            color: var(--color-text-med);
+            margin: 0;
+            padding-top: 64px;
+            /* For fixed navbar */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background-color: var(--color-bg-med);
+            border-bottom: 1px solid var(--color-border);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            height: 64px;
+        }
+
+        .navbar-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            /* Adjusted for simpler navbar */
+            height: 100%;
+        }
+
+        .navbar-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo-image {
+            height: 32px;
+            margin-right: 0.75rem;
+        }
+
+        .site-name {
+            color: var(--color-text-bright);
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-right: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--color-text-med);
+            margin-right: 1.5rem;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .nav-links a:last-child {
+            margin-right: 0;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: var(--color-text-bright);
+        }
+
+        .navbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-icons .nav-icon {
+            color: var(--color-text-med);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            margin-left: 0.75rem;
+        }
+
+        .nav-icons .nav-icon:hover {
+            color: var(--color-text-bright);
+        }
+
+        .main-content-area {
+            padding: 2rem 1rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+            display: flex;
+            /* Added for centering player content */
+            flex-direction: column;
+            /* Added for centering player content */
+            align-items: center;
+            /* Added for centering player content */
+            flex-grow: 1;
+        }
+
+        /* Styles for video player to fit the theme */
+        #video-player-container {
+            width: 100%;
+            /* Full width within main-content-area's max-width */
+            max-width: 900px;
+            /* Max width for the player itself */
+            background-color: #000;
+            /* Black background for player */
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            /* Tailwind shadow-xl */
+            overflow: hidden;
+            /* To contain rounded corners of video */
+            border: 1px solid var(--color-border);
+        }
+
+        #video-player-container video {
+            display: block;
+            /* Remove extra space below video */
+            width: 100%;
+            height: auto;
+            border-radius: 0.5rem;
+            /* Match container if video itself needs rounding */
+        }
+
+        .page-title {
+            /* For "Now Playing" */
+            font-size: 1.5rem;
+            /* Tailwind text-2xl */
+            font-weight: 600;
+            /* Tailwind font-semibold */
+            margin-bottom: 1rem;
+            /* Tailwind mb-4 */
+            text-align: center;
+            color: var(--color-text-bright);
+        }
+
+        #torrent-progress-info {
+            margin-top: 1rem;
+            /* Tailwind mt-4 */
+            text-align: center;
+            color: var(--color-text-med);
+        }
+
+        /* MediaElement.js Theme Overrides for Dark Mode */
+        .mejs__container,
+        .mejs__container .mejs__controls {
+            background-color: var(--color-bg-med) !important;
+        }
+
+        /* Complete reset of media element button styling */
+        .mejs__button>button {
+            /* Remove any background image that might be causing issues */
+            background-image: none !important;
+        }
+
+        /* Add font-awesome icons to replace the default ones */
+        .mejs__button:after {
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: var(--color-text-bright);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 14px;
+        }
+
+        /* Play button */
+        .mejs__play:after {
+            content: "\f04b";
+            /* fa-play */
+        }
+
+        /* Pause button */
+        .mejs__pause:after {
+            content: "\f04c";
+            /* fa-pause */
+        }
+
+        /* Volume button */
+        .mejs__volume-button:after {
+            content: "\f028";
+            /* fa-volume-up */
+        }
+
+        /* Fullscreen button */
+        .mejs__fullscreen-button:after {
+            content: "\f065";
+            /* fa-expand */
+        }
+
+        /* Exit fullscreen button */
+        .mejs__unfullscreen-button:after {
+            content: "\f066";
+            /* fa-compress */
+        }
+
+        /* Button hover state */
+        .mejs__button:hover:after {
+            color: var(--color-accent);
+        }
+
+        /* Fix positioning */
+        .mejs__button {
+            position: relative;
+        }
+
+        .mejs__controls .mejs__time,
+        .mejs__controls .mejs__duration {
+            color: var(--color-text-med) !important;
+        }
+
+        .mejs__controls .mejs__time-rail .mejs__time-total,
+        .mejs__controls .mejs__time-rail .mejs__time-loaded {
+            background: var(--color-border) !important;
+        }
+
+        .mejs__controls .mejs__time-rail .mejs__time-current {
+            background: var(--color-accent) !important;
+        }
+
+        .mejs__controls .mejs__volume-button .mejs__volume-slider .mejs__volume-current,
+        .mejs__controls .mejs__horizontal-volume-slider .mejs__horizontal-volume-current {
+            background: var(--color-accent) !important;
+        }
+
+        .mejs__controls .mejs__volume-button .mejs__volume-slider .mejs__volume-total,
+        .mejs__controls .mejs__horizontal-volume-slider .mejs__horizontal-volume-total {
+            background: var(--color-border) !important;
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+    <main class="main-content-area">
+        <h2 class="page-title">Now Playing</h2>
+        <div id="video-player-container">
+            <video id="player" preload="none" class="w-full h-auto" style="max-width:100%;">
+                <!-- Source will be added by JavaScript -->
+                <!-- Removed 'controls' attribute -->
+            </video>
+        </div>
+
+    </main>
+
+    <!-- Import Mediaelement JS -->
+    <script src="https://cdn.jsdelivr.net/npm/mediaelement@latest/build/mediaelement-and-player.min.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const progressInfo = document.getElementById('torrent-progress-info');
+
+    const sessionId = urlParams.get('sessionId');
+
+    // Helper function to get basename of a file path (replaces path.basename)
+    function getBasename(filePath) {
+        return filePath.split(/[\\/]/).pop();
+    }
+
+    fetch(`/get?sessionId=${sessionId}`)
+        .then(res => res.json())
+        .then(data => {
+            const session = data;
+
+            const videoElement = document.getElementById('player');
+
+            const streamFileName = session.filePath;
+
+            let mePlayerInstance = null;
+
+            if (streamFileName) {
+                const videoSrc = `/stream/${sessionId}/${encodeURIComponent(getBasename(streamFileName))}`;
+
+                // Clear existing source elements if any
+                while (videoElement.firstChild) {
+                    videoElement.removeChild(videoElement.firstChild);
+                }
+                // Add new source
+                const source = document.createElement('source');
+                source.setAttribute('src', videoSrc);
+
+                const fileExtension = streamFileName.toLowerCase().split('.').pop();
+                let mimeType = 'video/mp4'; // default
+                
+                switch (fileExtension) {
+                    case 'mkv':
+                        mimeType = 'video/x-matroska';
+                        break;
+                    case 'avi':
+                        mimeType = 'video/x-msvideo';
+                        break;
+                    case 'mov':
+                        mimeType = 'video/quicktime';
+                        break;
+                    case 'wmv':
+                        mimeType = 'video/x-ms-wmv';
+                        break;
+                    case 'webm':
+                        mimeType = 'video/webm';
+                        break;
+                    case 'ogg':
+                        mimeType = 'video/ogg';
+                        break;
+                    default:
+                        mimeType = 'video/mp4';
+                }
+                
+                source.setAttribute('type', mimeType);
+                videoElement.appendChild(source);
+
+                if (progressInfo) {
+                    progressInfo.textContent = `Loading: ${streamFileName}...`;
+                }
+
+                mePlayerInstance = new MediaElementPlayer(videoElement, {
+                    autoplay: true,
+                    features: ['playpause', 'current', 'progress', 'duration', 'volume', 'fullscreen', 'tracks'],
+                    useFallbackTimer: false,
+                    alwaysShowControls: true,
+                    stretching: 'responsive',
+                    classPrefix: 'mejs__',
+                    renderers: ['html5', 'native'],
+                    tracks: [],
+                    success: function (mediaElement, originalNode, instance) {
+                        // Set initial timestamp if available from session
+                        if (session.timestamp && session.timestamp > 0) {
+                            mediaElement.addEventListener('loadedmetadata', () => {
+                                mediaElement.currentTime = session.timestamp;
+                                console.log(`Set video time to ${session.timestamp}s from session data`);
+                            });
+                        }
+
+                        // Add play/pause event listeners - SEND SERVER UPDATES
+                        mediaElement.addEventListener('play', () => {
+                            console.log('Video started playing');
+                            
+                            // Don't send update if this was triggered by polling
+                            if (pollingActionFlag) {
+                                pollingActionFlag = false;
+                                return;
+                            }
+                            
+                            userActionFlag = true; // Set flag when user plays
+                            
+                            // Send update to server
+                            fetch('/update', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    sessionId: sessionId,
+                                    playing: true,
+                                    timestamp: mediaElement.currentTime
+                                })
+                            }).catch(err => console.error('Error updating play status:', err));
+                        });
+
+                        mediaElement.addEventListener('pause', () => {
+                            console.log('Video paused');
+                            
+                            // Don't send update if this was triggered by polling
+                            if (pollingActionFlag) {
+                                pollingActionFlag = false;
+                                return;
+                            }
+                            
+                            userActionFlag = true; // Set flag when user pauses
+                            
+                            // Send update to server
+                            fetch('/update', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify({
+                                    sessionId: sessionId,
+                                    playing: false,
+                                    timestamp: mediaElement.currentTime
+                                })
+                            }).catch(err => console.error('Error updating pause status:', err));
+                        });
+
+                        // Clear interval when video ends
+                        mediaElement.addEventListener('ended', () => {
+                            console.log('Video ended');
+                        });
+
+                        mediaElement.addEventListener('error', (e) => {
+                            console.error('Video player error:', mediaElement.error);
+                            if (progressInfo) {
+                                let errorMsg = 'Error loading video.';
+                                if (mediaElement.error) {
+                                    switch (mediaElement.error.code) {
+                                        case mediaElement.error.MEDIA_ERR_ABORTED:
+                                            errorMsg = 'Video playback aborted by user.';
+                                            break;
+                                        case mediaElement.error.MEDIA_ERR_NETWORK:
+                                            errorMsg = 'A network error caused video download to fail.';
+                                            break;
+                                        case mediaElement.error.MEDIA_ERR_DECODE:
+                                            errorMsg = 'Video playback aborted due to a corruption problem or because the video used features your browser did not support.';
+                                            break;
+                                        case mediaElement.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                                            errorMsg = 'The video could not be loaded, either because the server or network failed or because the format is not supported.';
+                                            break;
+                                        default:
+                                            errorMsg = 'An unknown error occurred while loading the video.';
+                                    }
+                                }
+                                progressInfo.textContent = errorMsg;
+                            }
+                        });
+
+                        mediaElement.addEventListener('stalled', () => {
+                            console.warn('Video player stalled (data not loading).');
+                            if (progressInfo && !mediaElement.error) {
+                                progressInfo.textContent = 'Video stalled. Waiting for data...';
+                            }
+                        });
+
+                        mediaElement.addEventListener('waiting', () => {
+                            console.log('Video player waiting for data (buffering).');
+                            if (progressInfo && !mediaElement.error) {
+                                progressInfo.textContent = 'Buffering...';
+                            }
+                        });
+
+                        mediaElement.addEventListener('canplay', () => {
+                            console.log('Video player can play.');
+                            if (progressInfo && progressInfo.textContent.startsWith(`Loading: ${streamFileName}...`)) {
+                                // progressInfo.textContent = ""; // Or let 'playing' event handle it
+                            }
+                        });
+
+                        mediaElement.addEventListener('playing', () => {
+                            console.log('Video playback started/resumed.');
+                            if (progressInfo && !mediaElement.error) {
+                                if (progressInfo.textContent.startsWith("Buffering") ||
+                                    progressInfo.textContent.startsWith("Video stalled") ||
+                                    progressInfo.textContent.startsWith("Loading:") ||
+                                    progressInfo.textContent.startsWith("Download complete:")) {
+                                    progressInfo.textContent = "";
+                                }
+                            }
+                        });
+                    },
+                    error: function (mediaElement, originalNode) {
+                        console.error('MediaElement.js Initialization Error on node:', originalNode);
+                        if (progressInfo) {
+                            progressInfo.textContent = 'Error initializing video player. The video format might not be supported or the source is unavailable.';
+                        }
+                    }
+                });
+
+                // Start polling for session status changes
+                let pollingInterval;
+                let userActionFlag = false; // Flag to prevent polling interference
+                let pollingActionFlag = false; // Flag to prevent POST when polling triggers play/pause
+                
+                function startSessionPolling() {
+                    pollingInterval = setInterval(() => {
+                        // Skip polling if user just performed an action
+                        if (userActionFlag) {
+                            userActionFlag = false;
+                            return;
+                        }
+                        
+                        fetch(`/get?sessionId=${sessionId}`)
+                            .then(res => res.json())
+                            .then(sessionData => {
+                                const mediaElement = mePlayerInstance.media;
+                                
+                                // Check if server session is playing but local player is paused
+                                if (sessionData.playing && mediaElement.paused) {
+                                    console.log('Server session is playing, resuming local player');
+                                    console.log(`Current time: ${mediaElement.currentTime}, Server time: ${sessionData.timestamp}`);
+                                    
+                                    // Always sync timestamp when resuming, regardless of difference
+                                    if (sessionData.timestamp !== undefined && sessionData.timestamp !== null) {
+                                        console.log(`Syncing video time to ${sessionData.timestamp}s from database`);
+                                        
+                                        // Set the flag before any operations
+                                        pollingActionFlag = true;
+                                        
+                                        // Set timestamp
+                                        mediaElement.currentTime = sessionData.timestamp;
+                                        
+                                        // Use setTimeout to ensure the seek operation has time to complete
+                                        setTimeout(() => {
+                                            console.log(`Playing from timestamp: ${mediaElement.currentTime}s`);
+                                            mediaElement.play().catch(err => {
+                                                console.error('Error playing video:', err);
+                                                pollingActionFlag = false; // Reset flag on error
+                                            });
+                                        }, 100); // Small delay to allow seek to process
+                                    } else {
+                                        pollingActionFlag = true;
+                                        mediaElement.play().catch(err => {
+                                            console.error('Error playing video:', err);
+                                            pollingActionFlag = false; // Reset flag on error
+                                        });
+                                    }
+                                }
+                                // Check if server session is paused but local player is playing
+                                else if (!sessionData.playing && !mediaElement.paused) {
+                                    console.log('Server session is paused, pausing local player');
+                                    pollingActionFlag = true; // Set flag to prevent POST
+                                    mediaElement.pause();
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Error polling session status:', err);
+                            });
+                    }, 1000); // Poll every second
+                }
+
+                // Start polling after player is ready
+                if (mePlayerInstance && mePlayerInstance.media) {
+                    startSessionPolling();
+                }
+
+                // Clean up polling on page unload
+                window.addEventListener('beforeunload', () => {
+                    if (pollingInterval) {
+                        clearInterval(pollingInterval);
+                    }
+                });
+
+            } else {
+                console.error('Stream source not found in URL (streamFile parameter missing).');
+                if (progressInfo) {
+                    progressInfo.textContent = 'Error: Video stream information not found. Cannot play video.';
+                }
+            }
+        })
+        .catch(err => {
+            console.error('Error fetching session:', err);
+        });
+});
+</script>
+</body>
+
+</html>

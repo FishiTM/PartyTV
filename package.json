@@ -1,0 +1,18 @@
+{
+  "name": "partytv",
+  "version": "1.0.0",
+  "description": "PartyTV is a web application that lets you watch torrent based videos in sync with friends. It uses Firebase for session management and WebTorrent for streaming video files directly from magnet links.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "FishiTM",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^17.0.1",
+    "express": "^5.1.0",
+    "firebase": "^11.10.0",
+    "webtorrent": "^2.6.10"
+  }
+}

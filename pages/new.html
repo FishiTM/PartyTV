@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PartyTV</title>
+    <link rel="icon" href="/logo.ico" type="image/x-icon">
+    <style>
+        :root {
+            --color-bg-deep: #0D1117;
+            --color-bg-med: #161B22;
+            --color-bg-light: #21262D;
+            --color-border: #30363D;
+            --color-text-bright: #E6EDF3;
+            --color-text-med: #8B949E;
+            --color-text-muted: #6E7681;
+            --color-accent: #58A6FF;
+        }
+
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: var(--color-bg-deep);
+            color: var(--color-text-med);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: flex-start;
+        }
+        h1 {
+            color: var(--color-text-bright);
+            margin-top: 3rem;
+            margin-bottom: 2rem;
+            font-size: 2.25rem;
+            font-weight: bold;
+            text-align: center;
+        }
+        #userInput {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-bright);
+            border: 1px solid var(--color-border);
+            border-radius: 0.375rem;
+            padding: 0.75rem 1rem;
+            font-size: 1rem;
+            margin-right: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        #userInput:focus {
+            border-color: var(--color-accent);
+        }
+        button {
+            background-color: var(--color-accent);
+            color: var(--color-bg-deep);
+            border: none;
+            border-radius: 0.375rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        button:hover {
+            background-color: var(--color-text-bright);
+            color: var(--color-bg-deep);
+        }
+        /* Responsive centering */
+        body > * {
+            max-width: 90vw;
+        }
+    </style>
+</head>
+<body>
+    <h1>Create PartyTV Session</h1>
+    <input type="text" id="userInput" placeholder="Enter magnet link">
+    <br/>
+    <button onclick="handleClick()">Submit</button>
+
+    <script>
+        async function handleClick() {
+            const input = document.getElementById('userInput').value;
+            if (!input) {
+                alert('Please enter a magnet link.');
+                return;
+            }
+            try {
+                const resp = await fetch('/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ magnet: input })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    navigator.clipboard.writeText(data.sessionId);
+                    alert('Session ID copied to clipboard!');
+                } else {
+                    alert('Error: ' + (data.message || 'Unknown error'));
+                }
+            } catch (e) {
+                alert('Network error: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
